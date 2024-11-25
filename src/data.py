@@ -11,6 +11,11 @@ def load_data_csv(file_path: str) -> pd.DataFrame:
     :return: pd.DataFrame: A DataFrame containing the csv data.
     """
     data_df = pd.read_csv(file_path)
+
+    return data_df
+
+
+def reformat_data(data_df):
     list_columns_float = [
         'train_kph_sequence',
     ]
@@ -24,11 +29,11 @@ def load_data_csv(file_path: str) -> pd.DataFrame:
 
     def string_to_array_float(value):
         parsed_list = ast.literal_eval(value)
-        return np.array(parsed_list, dtype=float)
+        return np.array(parsed_list)
 
     def string_to_array_int(value):
         parsed_list = ast.literal_eval(value)
-        return np.array(parsed_list, dtype=int)
+        return np.array(parsed_list)
 
     for col in list_columns_float:
         data_df[col] = data_df[col].apply(string_to_array_float)
