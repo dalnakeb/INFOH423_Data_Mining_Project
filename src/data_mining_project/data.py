@@ -15,30 +15,12 @@ def load_data_csv(file_path: str) -> pd.DataFrame:
     return data_df
 
 
-def reformat_data(data_df):
-    list_columns_int = [
-        'vehicles_sequence',
-        'events_sequence',
-        'seconds_to_incident_sequence',
-        'dj_ac_state_sequence',
-        'dj_dc_state_sequence',
-    ]
-
-    list_columns_float = [
-        'train_kph_sequence'
-    ]
-
-    def string_to_array_float(value):
+def reformat_str_to_list(data_df, cols: list[str], col_type: type):
+    def string_to_array(value):
         parsed_list = ast.literal_eval(value)
-        return np.array(parsed_list).astype(float)
+        return np.array(parsed_list).astype(col_type)
 
-    def string_to_array_int(value):
-        parsed_list = ast.literal_eval(value)
-        return np.array(parsed_list).astype(int)
+    for col_name in cols:
+        data_df[col_name] = data_df[col_name].apply(lambda value: string_to_array(value))
 
-    for col in list_columns_int:
-        data_df[col] = data_df[col].apply(string_to_array_int)
-
-    for col in list_columns_float:
-        data_df[col] = data_df[col].apply(string_to_array_float)
     return data_df
