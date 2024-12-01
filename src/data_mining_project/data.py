@@ -24,3 +24,14 @@ def reformat_str_to_list(data_df, cols: list[str], col_type: type):
         data_df[col_name] = data_df[col_name].apply(lambda value: string_to_array(value))
 
     return data_df
+
+
+def save_data(data_df, filepath):
+    def np_to_list(row):
+        for col in range(len(row)):
+            if isinstance(row.iloc[col], np.ndarray):
+                row.iloc[col] = str(list(row.iloc[col]))
+        return row
+
+    data_df = data_df.apply(np_to_list, axis=1)
+    data_df.to_csv(filepath, index=False)

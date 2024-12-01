@@ -59,20 +59,17 @@ def remove_event_from_incidents(data_df, events_to_remove_per_incident, allowed_
 
 
 def filter_events_out_of_interval(data_df, interval):
-    def filter_events(row, interval, list_columns_indices):
-        seconds_to_incident = row.iloc[3]
+    def filter_events(row, interval, columns_names):
+        seconds_to_incident = row.loc["seconds_to_incident_sequence"]
         too_low = len(seconds_to_incident[seconds_to_incident < interval[0]])
         too_high = len(seconds_to_incident[seconds_to_incident > interval[1]])
-        for col in list_columns_indices:
-            row.iloc[col] = row.iloc[col][too_low:][:-too_high]
+        for col in columns_names:
+            if isinstance(row.loc[col], np.ndarray):
+                row.loc[col] = row.loc[col][too_low:][:-too_high]
         return row
 
-    list_columns = ["vehicles_sequence", "events_sequence", "seconds_to_incident_sequence", "train_kph_sequence",
-                    "dj_ac_state_sequence", "dj_dc_state_sequence"]
-    list_columns_indices = []
-    for el in list_columns:
-        list_columns_indices.append(data_df.columns.to_list().index(el))
-    filtered_data_df = data_df.apply(lambda row: filter_events(row, interval, list_columns_indices), axis=1)
+    columns_names = data_df.columns
+    filtered_data_df = data_df.apply(lambda row: filter_events(row, interval, columns_names), axis=1)
     return filtered_data_df
 
 
