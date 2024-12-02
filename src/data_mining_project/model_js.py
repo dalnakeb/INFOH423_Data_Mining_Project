@@ -2,12 +2,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+
 def modified_jaccard_similarity(A, B):
     set_A = set(A)
     set_B = set(B)
     intersection_size = len(set_A.intersection(set_B))
-    max_size = max(len(set_A), len(set_B))
-    return intersection_size / max_size
+    union_size = len(set_A.union(set_B))
+
+    return intersection_size / union_size
 
 
 def compute_similarity_to_incident_group(X, Y, x, incident_type):
@@ -95,7 +97,7 @@ def compute_f1_score(confusion_matrix):
     return f1_macro, f1_scores
 
 
-def plot_confusion_matrix(confusion_matrix):
+def plot_confusion_matrix(confusion_matrix, t):
     incident_types = list(confusion_matrix.keys())
     matrix = []
 
@@ -109,7 +111,7 @@ def plot_confusion_matrix(confusion_matrix):
 
     plt.figure(figsize=(10, 7))
     sns.heatmap(matrix, annot=True, cmap="Blues", xticklabels=incident_types, yticklabels=incident_types, fmt=".2f")
-    plt.title(f"Confusion Matrix Heatmap")
+    plt.title(f"Confusion Matrix Heatmap | Relevance Threshold: {t}")
     plt.xlabel("Predicted Incident Type")
     plt.ylabel("True Incident Type")
     plt.show()
@@ -117,9 +119,9 @@ def plot_confusion_matrix(confusion_matrix):
 
 def plot_f1_scores(f1_scores):
     plt.figure(figsize=(8, 5))
-    plt.plot(f1_scores[:, 0], f1_scores[:, 1], marker='o', linestyle='-', color='b', zorder=1)
+    plt.plot(f1_scores[:, 0], f1_scores[:, 1], marker='o', linestyle='-', color='b', zorder=2)
     max_f1 = max(f1_scores, key=lambda x: x[1])
-    plt.scatter(max_f1[0], max_f1[1], color='red', label=f'(t, F1): ({max_f1[0], max_f1[1]})', zorder=2)
+    plt.scatter(max_f1[0], max_f1[1], color='red', label=f'(t, F1): ({max_f1[0], round(max_f1[1], 3)})', zorder=3)
 
     plt.xlabel("Relevance Threshold t")
     plt.ylabel("F1-Score")
