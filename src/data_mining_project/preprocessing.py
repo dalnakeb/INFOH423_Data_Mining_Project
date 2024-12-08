@@ -1,7 +1,13 @@
 import numpy as np
+import pandas as pd
 
 
-def compute_events_freq(events_sequence):
+def compute_events_freq(events_sequence: np.array) -> dict:
+    """
+    Computes the relative frequency of unique events in a sequence
+    :param events_sequence: a sequence containing the events
+    :return: a dictionary of {event: frequency}
+    """
     unique_events, events_count = np.unique(events_sequence, return_counts=True)
     total_events_count = np.sum(events_count)
     events_freq = events_count / total_events_count
@@ -10,7 +16,15 @@ def compute_events_freq(events_sequence):
     return events_freq
 
 
-def compute_events_to_remove(data_df, events_freq_all_classes, t):
+def compute_events_to_remove(data_df: pd.DataFrame, events_freq_all_classes: dict, t: float) -> dict:
+    """
+    Given a dataframe with incident type and events sequences columns, given the general events frequencies in all
+    classes, and given a relevance threshold: compute a list of irrelevant events to remove from each class.
+    :param data_df:
+    :param events_freq_all_classes:
+    :param t:
+    :return: dictionary of {incident_type: events to remove}
+    """
     events_to_remove = {}
     events_freq_per_incident = {}
     for incident_type, events_sequences in list(data_df.groupby("incident_type")["events_sequence"]):
@@ -26,7 +40,15 @@ def compute_events_to_remove(data_df, events_freq_all_classes, t):
     return events_to_remove
 
 
-def remove_event_from_incidents(data_df, events_to_remove_per_incident, allowed_event=None):
+def remove_event_from_incidents(data_df: pd.DataFrame, events_to_remove_per_incident: dict, allowed_event=None) -> pd.DataFrame:
+    """
+    Given a dataframe with events sequences and incident types, given a list of events to remove per incident type:
+    remove those events for each incident type, with the exception of an allowed event.
+    :param data_df:
+    :param events_to_remove_per_incident:
+    :param allowed_event: int: the exception of an event to keep
+    :return: dataframe with the filtered events removed
+    """
     def remove_events(row, events_to_remove_per_incident, column_names, allowed_event=None):
         incident_type = row.iloc[-1]
         events_to_remove = set(events_to_remove_per_incident[incident_type])
@@ -58,7 +80,13 @@ def remove_event_from_incidents(data_df, events_to_remove_per_incident, allowed_
     return filtered_data_df
 
 
-def filter_events_out_of_interval(data_df, interval):
+def filter_events_out_of_interval(data_df: pd.DataFrame, interval: list[int]) -> pd.DataFrame:
+    """
+    Filter events in a dataframe outside of a given interval
+    :param data_df:
+    :param interval:
+    :return: dataframe with the filtered events
+    """
     def filter_events(row, interval, columns_names):
         seconds_to_incident = row.loc["seconds_to_incident_sequence"]
         too_low = len(seconds_to_incident[seconds_to_incident < interval[0]])
@@ -80,7 +108,14 @@ def remove_short_rows(row, x):
         return False
 
 
-def filter_irrelevant_events(data_df, t, allowed_event=None):
+def filter_irrelevant_events(data_df: pd.DataFrame, t: float, allowed_event=None) -> pd.DataFrame:
+    """
+    Given a data frame and a relevance threshold t, filter events that have relevance < t.
+    :param data_df:
+    :param t:
+    :param allowed_event:
+    :return: dataframe with the irrelevant events filtered
+    """
     events_sequences_all_classes = np.concatenate(list(data_df["events_sequence"]))
     events_freq_all_classes = compute_events_freq(events_sequences_all_classes)
     events_to_remove_per_incident = compute_events_to_remove(data_df, events_freq_all_classes, t)
@@ -92,3 +127,24 @@ def filter_irrelevant_events(data_df, t, allowed_event=None):
     return filtered_data_df
 
 
+def detect_braking(row) -> pd.Series:
+    """
+    For each row, detect where a hard breaking occurs and the description of the speed differences
+    :param row: a row in the dataframe
+    :return:
+    """
+    time = row['seconds_to_incident_sequence']
+    vitesses = row['train_kph_sequence']
+    description = []
+    hard_braking = 0  # FALSE
+    threshold = 5  # perte de 5km/h par seconde (à partir de 3.5, c'est considéré comme freinage urgent)
+    for i in range(0, len(vitesses) - 1):
+        delta_v = vitesses[i] - vitesses[i + 1]
+        delta_t = abs(time[i] - time[i + 1])
+        if (delta_t > 0):
+            diff = abs(delta_v) / delta_t
+            if (diff >= threshold):
+                hard_braking = 1  # TRUE
+                description.append([vitesses[i], vitesses[i + 1], time[i], time[i + 1]])
+
+    return pd.Series([hard_braking, description])
