@@ -1,4 +1,13 @@
-def compute_f1_score(confusion_matrix):
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+def compute_f1_score(confusion_matrix: np.array) -> (float, np.array):
+    """
+    Given a confusion matrix, compute the F1-score for each class, as well as the average F1-score of the matrix
+    :param confusion_matrix:
+    :return: (average f1-score, f1-score per class
+    """
     incident_types = list(confusion_matrix.keys())
     matrix = []
 
@@ -30,7 +39,13 @@ def compute_f1_score(confusion_matrix):
     return f1_macro, f1_scores
 
 
-def plot_confusion_matrix(confusion_matrix, t):
+def plot_confusion_matrix(confusion_matrix: np.array, t: float) -> None:
+    """
+    Plot the confusion matrix alongside the relevance threshold
+    :param confusion_matrix:
+    :param t: relevance threshold
+    :return:
+    """
     incident_types = list(confusion_matrix.keys())
     matrix = []
 
@@ -50,7 +65,12 @@ def plot_confusion_matrix(confusion_matrix, t):
     plt.show()
 
 
-def plot_f1_scores(f1_scores):
+def plot_f1_scores(f1_scores: np.array) -> None:
+    """
+    Plot the graph of the f1-scores
+    :param f1_scores:
+    :return: None
+    """
     plt.figure(figsize=(8, 5))
     plt.plot(f1_scores[:, 0], f1_scores[:, 1], marker='o', linestyle='-', color='b', zorder=2)
     max_f1 = max(f1_scores, key=lambda x: x[1])

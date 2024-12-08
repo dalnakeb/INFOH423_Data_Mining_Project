@@ -1,7 +1,13 @@
 import numpy as np
 
 
-def jaccard_similarity(A, B):
+def jaccard_similarity(A: np.array, B: np.array) -> float:
+    """
+    Compute the jaccard similarity between two sequences of data, transforming them into two sets.
+    :param A: first sequence
+    :param B: second sequence
+    :return: jaccard similarity
+    """
     set_A = set(A)
     set_B = set(B)
     intersection_size = len(set_A.intersection(set_B))
@@ -11,6 +17,15 @@ def jaccard_similarity(A, B):
 
 
 def compute_similarity_to_incident_group(X, Y, x, incident_type):
+    """
+    Compute the average jaccard similarty of a sequence of events, to a group of event sequences associated to an
+    incident type.
+    :param X: Events sequences
+    :param Y: incident types
+    :param x: event sequence with unknown incident type
+    :param incident_type:
+    :return: the mean similarity to a given incident type group of events sequences
+    """
     incident_group = []
     for i in range(Y.shape[0]):
         if Y[i] == incident_type:
@@ -30,6 +45,11 @@ def compute_similarity_to_incident_group(X, Y, x, incident_type):
 
 
 def init_confusion_matrix(incident_types):
+    """
+    Initialize an empty confusion matrix given the different classes
+    :param incident_types:
+    :return: Confusion matrix dictionary (incident_type: dictionary(incident_type: num predictions))
+    """
     class_count = {incident_type: 0 for incident_type in incident_types}
     confusion_matrix = {}
     for incident_type in incident_types:
@@ -39,6 +59,13 @@ def init_confusion_matrix(incident_types):
 
 
 def loo_js(X, Y):
+    """
+    Perform a leave-one-out cross-validation of the jaccard similarity algorithm to compute the confusion matrix of
+    predictions between the true class and the prediction class
+    :param X: Sequences of events
+    :param Y: Incident types
+    :return: Confusion matrix dictionary (incident_type: dictionary(incident_type: num predictions))
+    """
     incident_types = np.unique(Y)
     confusion_matrix = init_confusion_matrix(incident_types)
     for i, x in enumerate(X):
